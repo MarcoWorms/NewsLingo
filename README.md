@@ -62,8 +62,4 @@ Contributions are welcome! If you have any ideas, suggestions, or bug reports, p
 
 ## License 📄
 
-This project is licensed under public domain (CC0)
-
----
-
-Happy language learning with NewsLingo! 🌟📚
+This project is licensed under the public domain (CC0)
