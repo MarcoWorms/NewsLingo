@@ -47,19 +47,6 @@ To run the NewsLingo bot locally using Docker, follow these steps:
 
 5. Start chatting with your NewsLingo bot on Telegram! 🎉
 
-## Technologies Used 🛠️
-
-- 🐍 Python
-- 🤖 python-telegram-bot
-- 🧠 Anthropic Claude AI
-- 📡 News API
-- 🐳 Docker
-- 💾 SQLite
-
-## Contributing 🤝
-
-Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
-
 ## License 📄
 
 This project is licensed under the public domain (CC0)
