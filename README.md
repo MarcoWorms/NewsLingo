@@ -1,5 +1,7 @@
 # NewsLingo 📰🌍🎓
 
+- **Use it now! https://t.me/NewsLingoBot**
+
 NewsLingo is a Telegram bot that helps you learn a new language by sending you short daily news articles written in it. You can reply to the bot with what you understood from the article, and it will provide you with personalized feedback to help you improve your language skills. 📝💡
 
 ## Features ✨
