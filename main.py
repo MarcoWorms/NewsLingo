@@ -34,11 +34,12 @@ def get_db_connection():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            known_language TEXT,
-            target_language TEXT
-        )
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY,
+        known_language TEXT,
+        target_language TEXT,
+        news_count INTEGER DEFAULT 0
+    )
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chats (
@@ -108,7 +109,7 @@ def target_language_selection(update: Update, context):
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET target_language = ? WHERE user_id = ?", (target_language, user_id))
+    cursor.execute("UPDATE users SET target_language = ?, news_count = 1 WHERE user_id = ?", (target_language, user_id))
     conn.commit()
     cursor.execute("SELECT known_language FROM users WHERE user_id = ?", (user_id,))
     user_data = cursor.fetchone()
@@ -150,7 +151,7 @@ def translate_and_summarize(news, known_language, target_language, user_id):
     prompt = f"Translate the following news to {target_language} and summarize it for a beginner learner that is natively coming from {known_language} but it should be written in {target_language}, only reply with the title and summary directly (don't write TITLE besides the title for example) and do NOT add your comments or thoughts, make sure it contains the complete core of the news but also try to reduce complex words and length where possible, two paragraphs is enough:\n\n{news}"
     response = anthropic_client.messages.create(
         model="claude-3-opus-20240229",
-        max_tokens=4000,
+        max_tokens=1000,
         temperature=0,
         messages=[
             {"role": "user", "content": prompt},
@@ -197,7 +198,7 @@ def provide_feedback(user_message, chat_history, known_language, target_language
 
     response = anthropic_client.messages.create(
         model="claude-3-opus-20240229",
-        max_tokens=4000,
+        max_tokens=1000,
         temperature=0,
         system=f"Provide feedback to the user based on their understanding of the summarized news article, remember the user is learning a new language (the one the article was written in, his understanding is after the ----- prompt asking him to do it). Let them know which parts of the article they understood correctly and which parts they missed. You MUST reply using the user native language: {known_language}. If user wrote back to you in the same language as the article it means they are trying hard to learn so provide extra feedback on their grammar in this case!",
         messages=messages,
@@ -256,22 +257,27 @@ def daily_job(context):
     logger.debug("Running daily job")
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id, target_language, known_language FROM users")
+    cursor.execute("SELECT user_id, known_language, target_language FROM users")
     users = cursor.fetchall()
-    conn.close()
 
     news = fetch_news()
 
     for user_id, known_language, target_language in users:
-        translated_news = translate_and_summarize(news, known_language, target_language, user_id)
+        cursor.execute("SELECT conversation FROM chats WHERE chat_id = ?", (user_id,))
+        chat_data = cursor.fetchone()
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
-        conn.commit()
-        conn.close()
+        if chat_data:
+            conversation = eval(chat_data[0])
+            if len(conversation) > 1 or (len(conversation) == 1 and conversation[0]["role"] != "assistant"):
+                translated_news = translate_and_summarize(news, known_language, target_language, user_id)
 
-        context.bot.send_message(chat_id=user_id, text=translated_news)
+                cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
+                cursor.execute("UPDATE users SET news_count = news_count + 1 WHERE user_id = ?", (user_id,))
+                conn.commit()
+
+                context.bot.send_message(chat_id=user_id, text=translated_news)
+
+    conn.close()
 
 def main():
     updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
@@ -294,6 +300,8 @@ def main():
 
     updater.start_polling()
     updater.idle()
+
+
 
 if __name__ == "__main__":
     main()
