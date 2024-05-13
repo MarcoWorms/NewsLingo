@@ -4,6 +4,7 @@ import requests
 import anthropic
 import datetime
 import logging
+import time
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 from dotenv import load_dotenv
@@ -262,20 +263,28 @@ def daily_job(context):
 
     news = fetch_news()
 
-    for user_id, known_language, target_language in users:
-        cursor.execute("SELECT conversation FROM chats WHERE chat_id = ?", (user_id,))
-        chat_data = cursor.fetchone()
+    batch_size = 10
+    delay_between_batches = 3
 
-        if chat_data:
-            conversation = eval(chat_data[0])
-            if len(conversation) > 1 or (len(conversation) == 1 and conversation[0]["role"] != "assistant"):
-                translated_news = translate_and_summarize(news, known_language, target_language, user_id)
+    for i in range(0, len(users), batch_size):
+        batch_users = users[i:i+batch_size]
 
-                cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
-                cursor.execute("UPDATE users SET news_count = news_count + 1 WHERE user_id = ?", (user_id,))
-                conn.commit()
+        for user_id, known_language, target_language in batch_users:
+            cursor.execute("SELECT conversation FROM chats WHERE chat_id = ?", (user_id,))
+            chat_data = cursor.fetchone()
 
-                context.bot.send_message(chat_id=user_id, text=translated_news)
+            if chat_data:
+                conversation = eval(chat_data[0])
+                if len(conversation) > 1 or (len(conversation) == 1 and conversation[0]["role"] != "assistant"):
+                    translated_news = translate_and_summarize(news, known_language, target_language, user_id)
+
+                    cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
+                    cursor.execute("UPDATE users SET news_count = news_count + 1 WHERE user_id = ?", (user_id,))
+                    conn.commit()
+
+                    context.bot.send_message(chat_id=user_id, text=translated_news)
+
+        time.sleep(delay_between_batches)
 
     conn.close()
 
