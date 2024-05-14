@@ -2,22 +2,9 @@
 
 - **Use it now! https://t.me/NewsLingoBot**
 
-NewsLingo is a Telegram bot that helps you learn a new language by sending you short daily news articles written in it. You can reply to the bot with what you understood from the article, and it will provide you with personalized feedback to help you improve your language skills. 📝💡
+Everyday news in a language you want to learn!
 
-## Features ✨
-
-- 🌐 Supports multiple languages:
-  - 🇺🇸 English
-  - 🇧🇷 Portuguese (Brazil)
-  - 🇵🇹 Portuguese (Portugal)
-  - 🇯🇵 Japanese
-  - 🇪🇸 Spanish
-  - 🇫🇷 French
-  - 🇷🇺 Russian
-- 🗞️ Fetches the latest world news from newsapi.org
-- 🤖 Utilizes Anthropic's Claude AI to translate and summarize news articles for beginner learners
-- 💬 Provides personalized feedback on your understanding of the article in your native language
-- 📅 Sends a new article every day to keep you engaged and learning consistently
+Reply to the bot with what you understood and receive feedback!
 
 ## Getting Started 🚀
 
