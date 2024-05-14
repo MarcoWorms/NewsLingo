@@ -16,13 +16,7 @@ To run the NewsLingo bot locally using Docker, follow these steps:
    cd newslingo
    ```
 
-2. Create a `.env` file in the project root directory with the following environment variables:
-   ```
-   TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   NEWS_API_KEY=your_news_api_key
-   DB_NAME=newslingo.db
-   ```
+2. Copy `.env.example` as `.env` and add all your API keys.
 
 3. Build the Docker image:
    ```
