@@ -326,19 +326,11 @@ def daily_job(context):
         batch_users = users[i:i+batch_size]
 
         for user_id, known_language, target_language in batch_users:
-            cursor.execute("SELECT conversation FROM chats WHERE chat_id = ?", (user_id,))
-            chat_data = cursor.fetchone()
-
-            if chat_data:
-                conversation = eval(chat_data[0])
-                if len(conversation) > 1 or (len(conversation) == 1 and conversation[0]["role"] != "assistant"):
-                    translated_news = translate_and_summarize(news, known_language, target_language, user_id)
-
-                    cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
-                    cursor.execute("UPDATE users SET news_count = news_count + 1 WHERE user_id = ?", (user_id,))
-                    conn.commit()
-
-                    context.bot.send_message(chat_id=user_id, text=translated_news)
+            translated_news = translate_and_summarize(news, known_language, target_language, user_id)
+            cursor.execute("UPDATE chats SET conversation = ? WHERE chat_id = ?", (str([{"role": "assistant", "content": translated_news}]), user_id))
+            cursor.execute("UPDATE users SET news_count = news_count + 1 WHERE user_id = ?", (user_id,))
+            conn.commit()
+            context.bot.send_message(chat_id=user_id, text=translated_news)
 
         time.sleep(delay_between_batches)
 
