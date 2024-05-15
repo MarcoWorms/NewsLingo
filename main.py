@@ -45,9 +45,10 @@ LANGUAGES = {
     "🇸🇦 العربية": "🇸🇦 العربية",
 }
 
-def create_chat_completion(messages, max_tokens=1000, temperature=0, system=None):
+def create_chat_completion(messages, max_tokens=1000, temperature=0, system=""):
     if MODEL_PROVIDER == "openai":
-        messages.append({"role": "system", "content": system})
+        if system:
+            messages.append({"role": "system", "content": system})
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=messages,
@@ -179,6 +180,7 @@ def target_language_selection(update: Update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text=loading_messages.get(user_data[0]))
 
         news = fetch_news()
+        print(news)
         translated_news = translate_and_summarize(news, user_data[0], target_language, user_id)
 
         conn = get_db_connection()
